@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>rpi control center</title>
+    <style>
+        body {
+            padding: 5px;
+        }
+
+        header {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header .left div {
+            margin-right: 10px;
+        }
+
+        header .right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        header .right > * {
+            margin-right: 10px;
+        }
+
+        .table {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            border: 1px solid #ccc;
+        }
+
+        .row {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .row.header {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+
+        .cell {
+            flex: 1;
+            padding: 10px;
+            border-right: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell:last-child {
+            border-right: none;
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        #runStatus {
+            max-width: 100vw;
+            overflow: auto;
+        }
+
+        #cpuInfo {
+            display: flex;
+            margin: 0 10px 20px;
+        }
+
+        #cpuInfo div {
+            margin-right: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="left">时间: <span id="statusChangeTime"></span></div>
+    <div class="right">
+        <button onclick="getData()">刷新</button>
+        <a href="/logout" style="">退出</a>
+    </div>
+</header>
+
+<hr style="border-color: #f0f0f0;">
+
+<div id="cpuInfo"></div>
+
+<div class="table">
+    <!-- 表头 -->
+    <div class="row header">
+        <div class="cell">名称</div>
+        <div class="cell">状态</div>
+        <div class="cell">操作</div>
+        <div class="cell">查看</div>
+    </div>
+
+    <div id="tableRowList"></div>
+
+
+</div>
+
+
+<div>
+    <h3>快捷命令</h3>
+    <div id="quickCmd"></div>
+</div>
+
+
+<div>
+    <h3>pm2运行状态</h3>
+    <div id="runStatus"></div>
+</div>
+
+
+<script>
+  var quickCmd = document.getElementById('quickCmd')
+  var runStatus = document.getElementById('runStatus')
+  var tableRowList = document.getElementById('tableRowList')
+  var cpuInfo = document.getElementById('cpuInfo')
+  var statusChangeTime = document.getElementById('statusChangeTime')
+  var mainProjectName = 'rpi'
+  var projectUrls = {}
+
+  function getData() {
+    fetch('/runStatus')
+      .then(res => res.json())
+      .then(res => {
+        if (res.code === 0) {
+          const data = res.data;
+
+          projectUrls = data.projectUrls;
+
+          const cpuEle = `<div>CPU使用率: ${data.cpuUsage}</div>`
+          const cpuTempEle = `<div>CPU温度: ${data.cpuTemp}</div>`
+          cpuInfo.innerHTML = cpuEle + cpuTempEle
+
+          statusChangeTime.innerHTML = new Date(data.statusChangeTime).toLocaleString();
+
+          runStatus.innerHTML = `<pre>${data.pm2List}</pre>`
+
+          quickCmd.innerHTML = data.quickCmdList.map(d => `
+            <button onclick="runCmd('${d}')">${d}</button>
+          `).join('')
+
+          const pm2Status = data.pm2Status || [];
+          tableRowList.innerHTML = pm2Status.map(d => {
+            return `
+    <div class="row">
+        <div class="cell">${d.name}</div>
+        <div class="cell" style="color: ${d.status === 'online' ? '#5c962c' : '#ee514e'}">${d.status}</div>
+        <div class="cell">
+            <button onclick="startOrStop('${d.name}', '${d.status}')">${d.status === 'online' ? '关闭' : '启动'}</button>
+        </div>
+        <div class="cell">
+            <button onclick="goto('${d.name}')">进入</button>
+        </div>
+    </div>
+        `
+          }).join('')
+        }
+      })
+  }
+
+  function goto(type) {
+    if (projectUrls[type]) {
+      open(projectUrls[type])
+    } else {
+      alert(`没有返回${type}的url`)
+    }
+  }
+
+  function startOrStop(name, status) {
+    if (name === mainProjectName) {
+      if (!confirm('确定关闭当前项目?')) {
+        return
+      }
+    }
+    fetch(`/pm2StartOrStop?name=${name}&status=${status}`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.code === 0) {
+          getData()
+        } else {
+          alert('接口出错')
+        }
+      })
+  }
+
+  function runCmd(cmd) {
+    if (cmd === 'sudo shutdown -h now') {
+      if (!confirm('确定关机')) {
+        return
+      }
+    }
+    fetch('/runCmd?cmd=' + cmd)
+      .then(res => res.json())
+      .then(res => {
+        if (res.code === 0) {
+          getData()
+        } else {
+          const msg = res.data.msg;
+          alert(msg)
+        }
+      }).catch(err => {
+      console.log('err', err)
+      if (err.message === 'Failed to fetch') {
+        location.reload();
+      }
+    })
+  }
+
+  function main() {
+    getData();
+  }
+
+  main()
+
+</script>
+
+</body>
+</html>
