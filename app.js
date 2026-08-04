@@ -1,11 +1,11 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var session = require("express-session");
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const session = require("express-session");
 const FileStore = require("session-file-store")(session);
-var logger = require('morgan');
-var indexRouter = require('./不上传/routes/index');
-const { getLocalIP } = require("./不上传/utils");
+const logger = require('morgan');
+const indexRouter = require('./routes/index');
+const { getLocalIP } = require("./utils");
 
 // config
 global.username = 'xx'
@@ -14,7 +14,7 @@ const port = process.env.PORT || 3000;
 console.log("服务已启动，http://localhost:" + port);
 console.log(`服务已启动，http://${getLocalIP()}:` + port);
 
-var app = express();
+const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
