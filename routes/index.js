@@ -1,9 +1,9 @@
-var express = require('express');
+const express = require('express');
 const path = require("path");
 const { exec } = require("child_process");
 const { getLocalIP } = require("../utils");
 const os = require("os");
-var router = express.Router();
+const router = express.Router();
 
 const cmdMapFunc = {
     'bluetooth.sh'() {
@@ -33,8 +33,8 @@ router.get('/runStatus', async function (req, res, next) {
     const cpuUsage = await getCpuUsage();
     const cpuTemp = await getCpuTemp();
     const pm2List = await getPm2List();
-    const ip = getLocalIP();
     const projectUrls = {
+        // rpi: `http://localhost:${port}/`,
     }
     const statusChangeTime = Date.now();
     res.send({
@@ -162,7 +162,7 @@ function getCpuTemp() {
 }
 
 function getPm2List() {
-    if (os.platform() !== 'linux') return 'N/A'
+    if (os.platform() !== 'linux' && os.platform() !== 'darwin') return 'N/A'
     return execRunCmd('pm2 ls')
 }
 
