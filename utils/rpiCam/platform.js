@@ -8,7 +8,7 @@ const {exec} = require('child_process')
  * 用于本地调试
  */
 
-const uploadPort = 3001
+const uploadPort = 2050
 
 http.createServer((req, res) => {
   console.log('req.url', decodeURIComponent(req.url))

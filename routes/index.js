@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require("path");
 const { exec } = require("child_process");
-const { getLocalIP } = require("../utils");
+const { getProcessListeningPort } = require("../utils");
 const os = require("os");
 const router = express.Router();
 
@@ -33,9 +33,7 @@ router.get('/runStatus', async function (req, res, next) {
     const cpuUsage = await getCpuUsage();
     const cpuTemp = await getCpuTemp();
     const pm2List = await getPm2List();
-    const projectUrls = {
-        // rpi: `http://localhost:${port}/`,
-    }
+    const portMap = await getPm2PortMap();
     const statusChangeTime = Date.now();
     res.send({
         code: 0,
@@ -46,7 +44,7 @@ router.get('/runStatus', async function (req, res, next) {
             pm2Status: getPm2Status(pm2List),
             cpuUsage: `${cpuUsage}%`,
             cpuTemp: `${cpuTemp}°C`,
-            projectUrls,
+            portMap,
         }
     });
 });
@@ -164,6 +162,20 @@ function getCpuTemp() {
 function getPm2List() {
     if (os.platform() !== 'linux' && os.platform() !== 'darwin') return 'N/A'
     return execRunCmd('pm2 ls')
+}
+
+async function getPm2PortMap() {
+    if (os.platform() !== 'linux' && os.platform() !== 'darwin') return {}
+    const pm2ProcessList = JSON.parse(await execRunCmd('pm2 jlist'));
+    const portEntryList = await Promise.all(pm2ProcessList.map(async pm2Process => {
+        return [pm2Process.name, await getProcessListeningPort(pm2Process.pid)]
+    }));
+    return portEntryList.reduce((portMap, [name, port]) => {
+        if (portMap[name] === undefined || portMap[name] === null) {
+            portMap[name] = port;
+        }
+        return portMap;
+    }, {});
 }
 
 

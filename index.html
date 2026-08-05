@@ -134,7 +134,7 @@
   var cpuInfo = document.getElementById('cpuInfo')
   var statusChangeTime = document.getElementById('statusChangeTime')
   var mainProjectName = 'rpi'
-  var projectUrls = {}
+  var portMap = {}
 
   function getData() {
     fetch('/runStatus')
@@ -143,7 +143,7 @@
         if (res.code === 0) {
           const data = res.data;
 
-          projectUrls = data.projectUrls;
+          portMap = data.portMap || {};
 
           const cpuEle = `<div>CPU使用率: ${data.cpuUsage}</div>`
           const cpuTempEle = `<div>CPU温度: ${data.cpuTemp}</div>`
@@ -176,12 +176,18 @@
       })
   }
 
-  function goto(type) {
-    if (projectUrls[type]) {
-      open(projectUrls[type])
-    } else {
-      alert(`没有返回${type}的url`)
+  function goto(name) {
+    const port = portMap[name]
+    if (port === null || port === undefined) {
+      alert(`没有获取到${name}的端口`)
+      return
     }
+    const targetUrl = new URL(window.location.href)
+    targetUrl.port = port
+    targetUrl.pathname = '/'
+    targetUrl.search = ''
+    targetUrl.hash = ''
+    open(targetUrl.toString())
   }
 
   function startOrStop(name, status) {
