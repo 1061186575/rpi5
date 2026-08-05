@@ -13,12 +13,14 @@ const cmdMapFunc = {
 
 // 只有这些命令允许直接执行
 const quickCmdList = [
-    'pm2 save',
-    'pm2 restart all',
-    // 'sudo nginx',
-    // 'sudo nginx -s stop',
-    'sudo shutdown -h now',
-    'bluetooth.sh'
+    { name: '保存 PM2 配置', command: 'pm2 save' },
+    { name: '重启全部项目', command: 'pm2 restart all' },
+    // { name: '启动 Nginx', command: 'sudo nginx' },
+    // { name: '停止 Nginx', command: 'sudo nginx -s stop' },
+    { name: '关闭树莓派', command: 'sudo shutdown -h now' },
+    { name: '蓝牙配置', command: 'bluetooth.sh' },
+    { name: '开启风扇', command: 'sudo pinctrl FAN_PWM op dh' },
+    { name: '关闭风扇', command: 'sudo pinctrl FAN_PWM op dl' },
 ]
 
 const ignoreCmdErrorMap = {
@@ -68,7 +70,7 @@ router.get('/pm2StartOrStop', async function (req, res, next) {
 });
 router.get('/runCmd', async function (req, res, next) {
     let { cmd } = req.query
-    if (!quickCmdList.includes(cmd)) {
+    if (!quickCmdList.some(item => item.command === cmd)) {
         res.send({
             code: 1,
             data: {

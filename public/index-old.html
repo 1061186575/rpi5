@@ -154,7 +154,7 @@
                 runStatus.innerHTML = `<pre>${data.pm2List}</pre>`
 
                 quickCmd.innerHTML = data.quickCmdList.map(d => `
-            <button onclick="runCmd('${d}')">${d}</button>
+            <button class="${d.command === 'sudo shutdown -h now' ? 'buttonDanger' : ''}" onclick="runCmd('${d.command}')">${d.name}</button>
           `).join('')
 
                 const pm2Status = data.pm2Status || [];

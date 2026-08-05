@@ -370,7 +370,7 @@
           runStatus.innerHTML = `<pre>${data.pm2List}</pre>`
 
           quickCmd.innerHTML = data.quickCmdList.map(d => `
-            <button class="${d === 'sudo shutdown -h now' ? 'buttonDanger' : ''}" onclick="runCmd('${d}')">${d}</button>
+            <button class="${d.command === 'sudo shutdown -h now' ? 'buttonDanger' : ''}" onclick="runCmd('${d.command}')">${d.name}</button>
           `).join('')
 
           const pm2Status = data.pm2Status || [];
@@ -430,7 +430,7 @@
         return
       }
     }
-    fetch('/runCmd?cmd=' + cmd)
+    fetch('/runCmd?cmd=' + encodeURIComponent(cmd))
       .then(res => res.json())
       .then(res => {
         if (res.code === 0) {
