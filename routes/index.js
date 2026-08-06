@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require("path");
 const { exec } = require("child_process");
-const { getProcessListeningPort } = require("../utils");
+const { getProcessListeningPort } = require("../utils/getProcessListeningPort");
 const os = require("os");
 const router = express.Router();
 
@@ -18,9 +18,9 @@ const quickCmdList = [
     // { name: '启动 Nginx', command: 'sudo nginx' },
     // { name: '停止 Nginx', command: 'sudo nginx -s stop' },
     { name: '关闭树莓派', command: 'sudo shutdown -h now' },
-    { name: '蓝牙配置', command: 'bluetooth.sh' },
-    { name: '开启风扇', command: 'sudo pinctrl FAN_PWM op dh' },
-    { name: '关闭风扇', command: 'sudo pinctrl FAN_PWM op dl' },
+    { name: '连接蓝牙音响', command: 'bluetooth.sh' },
+    { name: '开启风扇', command: 'sudo pinctrl FAN_PWM op dl' },
+    { name: '关闭风扇', command: 'sudo pinctrl FAN_PWM op dh' },
 ]
 
 const ignoreCmdErrorMap = {

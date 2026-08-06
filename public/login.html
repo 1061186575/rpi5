@@ -6,44 +6,165 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>登录</title>
     <style>
-        .container {
-            margin: 30px auto;
+        * {
+            box-sizing: border-box;
         }
-        .container > * {
-            font-size: 18px;
-            margin: 5px;
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            color: #1f2937;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #eef4ff 0%, #f8fafc 48%, #e8f5ff 100%);
+        }
+
+        .loginCard {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 20px 50px rgba(30, 64, 175, 0.12);
+        }
+
+        .loginTitle {
+            margin: 0 0 8px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .loginDescription {
+            margin: 0 0 30px;
+            color: #6b7280;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .formItem {
+            margin-bottom: 18px;
+        }
+
+        .formLabel {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .formInput {
+            width: 100%;
+            height: 46px;
+            padding: 0 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            outline: none;
+            color: #111827;
+            font-size: 16px;
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .formInput:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .loginButton {
+            width: 100%;
+            height: 46px;
+            margin-top: 6px;
+            border: 0;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+
+        .loginButton:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+        }
+
+        .loginButton:active {
+            transform: translateY(0);
+        }
+
+        .loginButton:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        @media (max-width: 480px) {
+            .loginCard {
+                padding: 32px 24px;
+            }
         }
     </style>
-
 </head>
 <body>
 
-<div class="container">
-    <input id="user" class="input" placeholder="用户名" autofocus>
-    <input id="password" class="input" type="password" placeholder="密码">
-    <button id="submit" class="button">验证</button>
-</div>
+<main class="loginCard">
+    <h1 class="loginTitle">login</h1>
+    <p class="loginDescription">rpi control center</p>
+    <form id="loginForm">
+        <div class="formItem">
+            <label class="formLabel" for="user">username</label>
+            <input id="user" class="formInput" name="user" placeholder="请输入用户名" autocomplete="username" autofocus required>
+        </div>
+        <div class="formItem">
+            <label class="formLabel" for="password">password</label>
+            <input id="password" class="formInput" name="password" type="password" placeholder="请输入密码" autocomplete="current-password" required>
+        </div>
+        <button id="submit" class="loginButton" type="submit">submit</button>
+    </form>
+</main>
 
 <script>
-  submit.onclick = function login() {
-    fetch(`/login`, {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        user: user.value,
-        password: password.value,
+  const loginForm = document.getElementById('loginForm')
+  const userInput = document.getElementById('user')
+  const passwordInput = document.getElementById('password')
+  const submitButton = document.getElementById('submit')
+
+  loginForm.addEventListener('submit', async function login(event) {
+    event.preventDefault()
+    submitButton.disabled = true
+    submitButton.textContent = '登录中...'
+
+    try {
+      const response = await fetch('/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user: userInput.value,
+          password: passwordInput.value
+        })
       })
-    }).then(res => res.json()).then(res => {
-      console.log('res', res)
-      if (res.code === 0) {
+      const result = await response.json()
+
+      if (result.code === 0) {
         location.href = '/'
       } else {
-        alert(res.msg)
+        alert(result.msg)
       }
-    })
-  }
+    } catch (error) {
+      alert('登录请求失败，请稍后重试')
+    } finally {
+      submitButton.disabled = false
+      submitButton.textContent = '登录'
+    }
+  })
 </script>
 
 </body>

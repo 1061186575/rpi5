@@ -8,8 +8,15 @@ const indexRouter = require('./routes/index');
 const { getLocalIP } = require("./utils");
 
 // config
-global.username = 'xx'
-global.password = 'XXXX'
+try {
+    process.loadEnvFile(path.join(__dirname, '.env'));
+} catch (error) {
+    if (error.code !== 'ENOENT') {
+        throw error;
+    }
+}
+const username = process.env.username || 'admin';
+const password = process.env.password || '123';
 const port = process.env.PORT || 3000;
 console.log("服务已启动，http://localhost:" + port);
 console.log(`服务已启动，http://${getLocalIP()}:` + port);
@@ -82,4 +89,3 @@ app.use('/doc', express.static(path.join(__dirname, 'doc')));
 
 
 module.exports = app;
-
