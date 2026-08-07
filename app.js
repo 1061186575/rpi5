@@ -52,7 +52,7 @@ app.use(session(sessionConfig)); // 使用session
 // 无需权限
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.post('/login', function (req, res, next) {
+app.post('/login', function (req, res) {
     if (!username || !password) {
         return res.send({ code: 1, msg: `请先在 .env 文件设置用户名和密码` })
     }
@@ -79,7 +79,6 @@ app.all("/logout", function (req, res) {
 
 // 权限验证
 app.use(function (req, res, next) {
-    console.log(req.url)
     if (!req.session.userInfo) {
         res.sendFile(path.resolve('public/login.html'))
         return
